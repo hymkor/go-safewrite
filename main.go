@@ -30,6 +30,48 @@ var (
 	ErrOverWriteRejected = errors.New("overwrite rejected")
 )
 
+// BackupError is returned when creating or updating the backup file fails
+// during a safe overwrite operation.
+//
+// It typically wraps an underlying *os.LinkError or filesystem-related error.
+type BackupError struct {
+	Target string
+	Backup string
+	Err    error
+}
+
+func (e *BackupError) Error() string {
+	return fmt.Sprintf(
+		"failed to backup: %s -> %s: %v",
+		e.Target, e.Backup, e.Err,
+	)
+}
+
+func (e *BackupError) Unwrap() error {
+	return e.Err
+}
+
+// ReplaceError is returned when replacing the target file with a temporary file
+// fails during a safe overwrite operation.
+//
+// It typically wraps an underlying *os.LinkError or filesystem-related error.
+type ReplaceError struct {
+	Tmp    string
+	Target string
+	Err    error
+}
+
+func (e *ReplaceError) Error() string {
+	return fmt.Sprintf(
+		"failed to replace: %s -> %s: %v",
+		e.Tmp, e.Target, e.Err,
+	)
+}
+
+func (e *ReplaceError) Unwrap() error {
+	return e.Err
+}
+
 func Open(
 	name string,
 	confirmOverwrite func(*Info) bool,
@@ -88,8 +130,19 @@ func (w *writer) Close() error {
 	if _, ok := overwritten[w.target]; !ok {
 		overwritten[w.target] = struct{}{}
 		if err := os.Rename(w.target, backup); err != nil {
-			return err
+			return &BackupError{
+				Target: w.target,
+				Backup: backup,
+				Err:    err,
+			}
 		}
 	}
-	return os.Rename(w.tmp, w.target)
+	if err := os.Rename(w.tmp, w.target); err != nil {
+		return &ReplaceError{
+			Tmp:    w.tmp,
+			Target: w.target,
+			Err:    err,
+		}
+	}
+	return nil
 }
