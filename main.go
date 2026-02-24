@@ -58,6 +58,10 @@ func (e *BackupError) Unwrap() error {
 	return e.Err
 }
 
+func (e *BackupError) WorkingFile() string {
+	return e.Tmp
+}
+
 // ReplaceError is returned when replacing the target file with a temporary file
 // fails during a safe overwrite operation.
 //
@@ -77,6 +81,15 @@ func (e *ReplaceError) Error() string {
 
 func (e *ReplaceError) Unwrap() error {
 	return e.Err
+}
+
+func (e *ReplaceError) WorkingFile() string {
+	return e.Tmp
+}
+
+type WorkingFileError interface {
+	error
+	WorkingFile() string
 }
 
 func Open(

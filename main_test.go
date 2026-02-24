@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+var _ WorkingFileError = &BackupError{}
+
+var _ WorkingFileError = &ReplaceError{}
+
 func TestOpenWrite_DevNull(t *testing.T) {
 	w, err := Open(os.DevNull, func(*Info) bool {
 		t.Fatal("confirmOverwrite should not be called for device")
