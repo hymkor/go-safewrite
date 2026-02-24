@@ -103,9 +103,9 @@ func main() {
     if err := mains(); err != nil {
         fmt.Fprintln(os.Stderr, err.Error())
 
-        var e *safewrite.BackupError
+        var e safewrite.WorkingFileError
         if errors.As(err, &e) {
-            fmt.Fprintln(os.Stderr, "Working file left at:", e.Tmp)
+            fmt.Fprintln(os.Stderr, "Working file left at:", e.WorkingFile())
         }
 
         os.Exit(1)
