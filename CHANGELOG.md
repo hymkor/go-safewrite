@@ -2,6 +2,10 @@ CHANGELOG
 =========
 ( English / [Japanese](./CHANGELOG_ja.md) )
 
+v0.2.0
+------
+Feb 25, 2026
+
 - Add temporary working file path information to BackupError
   - Introduce `Tmp` field on `BackupError`
 - Provide a unified way to access leftover working files after errors
