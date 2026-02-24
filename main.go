@@ -8,6 +8,12 @@ import (
 	"path/filepath"
 )
 
+type writer struct {
+	*os.File
+	target string
+	tmp    string
+}
+
 var (
 	overwritten          = make(map[string]struct{})
 	ErrOverWriteRejected = errors.New("overwrite rejected")
@@ -51,20 +57,14 @@ func Open(
 		return nil, err
 	}
 
-	return &replaceWriter{
+	return &writer{
 		File:   tmp,
 		target: name,
 		tmp:    tmp.Name(),
 	}, nil
 }
 
-type replaceWriter struct {
-	*os.File
-	target string
-	tmp    string
-}
-
-func (w *replaceWriter) Close() error {
+func (w *writer) Close() error {
 	if err := w.File.Close(); err != nil {
 		return err
 	}
