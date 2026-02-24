@@ -21,6 +21,10 @@ type Info struct {
 	Mode fs.FileMode
 }
 
+func (i Info) ReadOnly() bool {
+	return i.Mode&0200 == 0
+}
+
 var (
 	overwritten          = make(map[string]struct{})
 	ErrOverWriteRejected = errors.New("overwrite rejected")
