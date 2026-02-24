@@ -12,11 +12,14 @@ import (
 )
 
 func mains() error {
-	fname := "sample.out"
-	prompt := func() bool {
+	prompt := func(info *safewrite.Info) bool {
 		sc := bufio.NewScanner(os.Stdin)
 		for {
-			fmt.Printf("Overwrite %q ? ", fname)
+			if info.ReadOnly() {
+				fmt.Printf("Overwrite READONLY file %q ? ", info.Name)
+			} else {
+				fmt.Printf("Overwrite file %q ? ", info.Name)
+			}
 			if !sc.Scan() {
 				return false
 			}
@@ -29,7 +32,7 @@ func mains() error {
 			}
 		}
 	}
-	fd, err := safewrite.Open(fname, prompt)
+	fd, err := safewrite.Open("sample.out", prompt)
 	if err != nil {
 		return err
 	}
