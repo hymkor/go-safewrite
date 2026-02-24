@@ -30,6 +30,68 @@ var (
 	ErrOverWriteRejected = errors.New("overwrite rejected")
 )
 
+// BackupError reports a failure that occurred while creating or replacing
+// a backup file before overwriting the target file.
+//
+// The error indicates that the original file was not replaced.
+// In this case, a temporary file may remain on disk.
+type BackupError struct {
+	Target string
+	Backup string
+	Err    error
+
+	// Tmp is the path to a temporary file that may be left on disk
+	// when the backup operation fails.
+	// It is provided for diagnostic or recovery purposes and does not
+	// affect the error condition itself.
+	Tmp string
+}
+
+func (e *BackupError) Error() string {
+	return fmt.Sprintf(
+		"failed to backup: %s -> %s: %v",
+		e.Target, e.Backup, e.Err,
+	)
+}
+
+func (e *BackupError) Unwrap() error {
+	return e.Err
+}
+
+func (e *BackupError) WorkingFile() string {
+	return e.Tmp
+}
+
+// ReplaceError is returned when replacing the target file with a temporary file
+// fails during a safe overwrite operation.
+//
+// It typically wraps an underlying *os.LinkError or filesystem-related error.
+type ReplaceError struct {
+	Tmp    string
+	Target string
+	Err    error
+}
+
+func (e *ReplaceError) Error() string {
+	return fmt.Sprintf(
+		"failed to replace: %s -> %s: %v",
+		e.Tmp, e.Target, e.Err,
+	)
+}
+
+func (e *ReplaceError) Unwrap() error {
+	return e.Err
+}
+
+func (e *ReplaceError) WorkingFile() string {
+	return e.Tmp
+}
+
+type WorkingFileError interface {
+	error
+	WorkingFile() string
+}
+
 func Open(
 	name string,
 	confirmOverwrite func(*Info) bool,
@@ -88,8 +150,20 @@ func (w *writer) Close() error {
 	if _, ok := overwritten[w.target]; !ok {
 		overwritten[w.target] = struct{}{}
 		if err := os.Rename(w.target, backup); err != nil {
-			return err
+			return &BackupError{
+				Target: w.target,
+				Backup: backup,
+				Err:    err,
+				Tmp:    w.tmp,
+			}
 		}
 	}
-	return os.Rename(w.tmp, w.target)
+	if err := os.Rename(w.tmp, w.target); err != nil {
+		return &ReplaceError{
+			Tmp:    w.tmp,
+			Target: w.target,
+			Err:    err,
+		}
+	}
+	return nil
 }

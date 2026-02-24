@@ -62,6 +62,7 @@ package main
 
 import (
     "bufio"
+    "errors"
     "fmt"
     "os"
     "strings"
@@ -101,6 +102,12 @@ func mains() error {
 func main() {
     if err := mains(); err != nil {
         fmt.Fprintln(os.Stderr, err.Error())
+
+        var e safewrite.WorkingFileError
+        if errors.As(err, &e) {
+            fmt.Fprintln(os.Stderr, "Working file left at:", e.WorkingFile())
+        }
+
         os.Exit(1)
     }
 }
