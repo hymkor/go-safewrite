@@ -30,14 +30,21 @@ var (
 	ErrOverWriteRejected = errors.New("overwrite rejected")
 )
 
-// BackupError is returned when creating or updating the backup file fails
-// during a safe overwrite operation.
+// BackupError reports a failure that occurred while creating or replacing
+// a backup file before overwriting the target file.
 //
-// It typically wraps an underlying *os.LinkError or filesystem-related error.
+// The error indicates that the original file was not replaced.
+// In this case, a temporary file may remain on disk.
 type BackupError struct {
 	Target string
 	Backup string
 	Err    error
+
+	// Tmp is the path to a temporary file that may be left on disk
+	// when the backup operation fails.
+	// It is provided for diagnostic or recovery purposes and does not
+	// affect the error condition itself.
+	Tmp string
 }
 
 func (e *BackupError) Error() string {
@@ -134,6 +141,7 @@ func (w *writer) Close() error {
 				Target: w.target,
 				Backup: backup,
 				Err:    err,
+				Tmp:    w.tmp,
 			}
 		}
 	}
