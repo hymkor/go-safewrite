@@ -25,6 +25,9 @@ all:
 	$(GO) fmt ./...
 	$(SET) "CGO_ENABLED=0" && $(GO) build $(GOOPT)
 
+release:
+	$(GO) run github.com/hymkor/latest-notes@latest | gh release create -d --notes-file - -t $(VERSION) $(VERSION)
+
 readme:
 	$(GO) run github.com/hymkor/example-into-readme@latest
 	$(GO) run github.com/hymkor/example-into-readme@latest -target README_ja.md
