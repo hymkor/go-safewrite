@@ -143,9 +143,6 @@ func (w *writer) Close() error {
 	if err := w.File.Close(); err != nil {
 		return err
 	}
-	if err := os.Chmod(w.tmp, w.perm); err != nil {
-		return err
-	}
 	backup := w.target + "~"
 	if _, ok := overwritten[w.target]; !ok {
 		overwritten[w.target] = struct{}{}
@@ -164,6 +161,13 @@ func (w *writer) Close() error {
 			Target: w.target,
 			Err:    err,
 		}
+	}
+	return nil
+}
+
+func RestorePerm(wc io.WriteCloser) error {
+	if w, ok := wc.(*writer); ok {
+		return os.Chmod(w.target, w.perm)
 	}
 	return nil
 }

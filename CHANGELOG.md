@@ -2,6 +2,8 @@ CHANGELOG
 =========
 ( English / [Japanese](./CHANGELOG_ja.md) )
 
+- Move permission restoration from `Close` to `RestorePerm`
+
 v0.2.0
 ------
 Feb 25, 2026
