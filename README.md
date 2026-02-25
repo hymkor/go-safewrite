@@ -26,33 +26,37 @@ Callers are expected to treat the returned value strictly as an
 ## Behavior
 
 - `name` specifies the target file to be updated.
-- `confirmOverwrite` is a callback function that is invoked when the target
-  file already exists.
-  - If it returns `true`, the operation continues.
-  - If it returns `false`, `Open` returns `ErrOverWriteRejected` and aborts.
+- `confirmOverwrite` is a callback invoked when the target file already exists.
+  - Returning `true` continues the operation.
+  - Returning `false` causes `Open` to return `ErrOverWriteRejected` and abort.
 
-The behavior of `Open` depends on the state of the existing file:
+The behavior of `Open` depends on the state of the target file:
 
-- If the file does not exist:
-  - The behavior is identical to `os.Create`.
-  - The returned value is a `*os.File`.
-- If a device file with the same name exists:
+- **File does not exist**
+  - Behaves exactly like `os.Create`.
+  - Returns a `*os.File`.
+- **A device file exists**
   - The file is opened normally for overwrite.
-  - The returned value is a `*os.File`.
-- If a regular file with the same name exists:
+  - Returns a `*os.File`.
+- **A regular file exists**
   - A temporary file is created under a different name.
-  - On `Close`, the original file is replaced with the newly written file.
+  - On `Close`, the original file is replaced by the temporary file.
     - The original file is renamed with a `~` suffix as a backup.
-    - If a backup file already exists, it may be overwritten.
-    - If `Open` is called multiple times for the same file within the same
-      process, the initial backup is preserved and not updated on subsequent
-      saves. This prevents frequent save operations from making the backup
-      meaningless.
+    - An existing backup file may be overwritten.
+    - If `Open` is called multiple times for the same file within the same process,
+      the initial backup is preserved and not updated on subsequent saves.
+      This prevents frequent save operations from making the backup meaningless.
 
-If renaming or replacement fails during `Close`:
+If an error occurs during backup or replacement on `Close`:
 
-- The in-progress temporary file is left as-is and not deleted.
+- The temporary file is left on disk.
 - An error is returned to the caller.
+
+Permission handling:
+
+- `Open` / `Close` do not automatically restore file permissions of the replaced file,
+  in order to keep overwrite behavior simple when the same file is overwritten multiple times.
+- If needed, explicitly call `safewrite.RestorePerm` to copy the original permissions.
 
 Example
 -------
