@@ -2,6 +2,8 @@ CHANGELOG
 =========
 ( [English](./CHANGELOG.md) / Japanese )
 
+- パーミッションの復元処理を `Close` から分離し、`RestorePerm` で明示的に行うものとした
+
 v0.2.0
 ------
 Feb 25, 2026
