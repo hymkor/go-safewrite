@@ -9,6 +9,14 @@ import (
 	"path/filepath"
 )
 
+type Status int
+
+const (
+	NONE Status = iota
+	CREATE
+	OVERWRITE
+)
+
 type writer struct {
 	*os.File
 	target string
@@ -17,8 +25,9 @@ type writer struct {
 }
 
 type Info struct {
-	Name string
-	Mode fs.FileMode
+	Name   string
+	Mode   fs.FileMode
+	Status Status
 }
 
 func (i Info) ReadOnly() bool {
@@ -26,7 +35,7 @@ func (i Info) ReadOnly() bool {
 }
 
 var (
-	overwritten          = make(map[string]struct{})
+	overwritten          = make(map[string]Status)
 	ErrOverWriteRejected = errors.New("overwrite rejected")
 )
 
@@ -104,6 +113,7 @@ func Open(
 			if err != nil {
 				err = fmt.Errorf("create %q: %w", name, err)
 			}
+			overwritten[name] = CREATE
 			return fd, err
 		}
 		err = fmt.Errorf("stat %q: %w", name, err)
@@ -118,8 +128,10 @@ func Open(
 		}
 		return fd, err
 	}
-
-	if !confirmOverwrite(&Info{Name: name, Mode: mode}) {
+	if !confirmOverwrite(&Info{
+		Name:   name,
+		Mode:   mode,
+		Status: overwritten[name]}) {
 		return nil, ErrOverWriteRejected
 	}
 
@@ -145,7 +157,7 @@ func (w *writer) Close() error {
 	}
 	backup := w.target + "~"
 	if _, ok := overwritten[w.target]; !ok {
-		overwritten[w.target] = struct{}{}
+		overwritten[w.target] = OVERWRITE
 		if err := os.Rename(w.target, backup); err != nil {
 			return &BackupError{
 				Target: w.target,
