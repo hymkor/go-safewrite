@@ -2,6 +2,10 @@ CHANGELOG
 =========
 ( English / [Japanese](./CHANGELOG_ja.md) )
 
+v0.3.0
+-------
+Feb 25, 2026
+
 - Move permission restoration from `Close` to `RestorePerm` (#4)
 - Add `Status` field to `Info` to indicate whether the file was created or overwritten before (#5)
 
