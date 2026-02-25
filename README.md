@@ -96,7 +96,11 @@ func mains() error {
         return err
     }
     fmt.Fprintln(fd, "sample output.")
-    return fd.Close()
+    err = fd.Close()
+    if err != nil {
+        return err
+    }
+    return safewrite.RestorePerm(fd)
 }
 
 func main() {
