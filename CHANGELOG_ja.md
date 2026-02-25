@@ -2,6 +2,10 @@ CHANGELOG
 =========
 ( [English](./CHANGELOG.md) / Japanese )
 
+v0.3.0
+-------
+Feb 25, 2026
+
 - パーミッションの復元処理を `Close` から分離し、`RestorePerm` で明示的に行うものとした (#4)
 - Info構造体に OverWritten フィールドを追加し、以前、呼び出した時に新規作成したか、更新したかの記録を参照できるようにした。 (#5)
 
