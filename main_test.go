@@ -1,6 +1,7 @@
 package safewrite
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,4 +110,33 @@ func TestOverwriteWithBackup(t *testing.T) {
 	if string(bak) != "old" {
 		t.Fatalf("unexpected backup content: %q", bak)
 	}
+}
+
+func forbidRenameTo(path string) error {
+	return os.MkdirAll(filepath.Join(path, "notempty"), 0777)
+}
+
+func TestBackupFail(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "file.bin")
+
+	if err := os.WriteFile(path, []byte("old"), 0666); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+	if err := forbidRenameTo(path + "~"); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+	w, err := Open(path, func(*Info) bool { return true })
+	if err != nil {
+		t.Fatalf("openWrite failed: %v", err)
+	}
+	if _, err := w.Write([]byte("new")); err != nil {
+		t.Fatalf("write failed: %v", err)
+	}
+	err = w.Close()
+	var be *BackupError
+	if !errors.As(err, &be) {
+		t.Fatalf("not backuperror: %v", err)
+	}
+	// t.Logf("Backup Error=%v", be)
 }
