@@ -34,6 +34,9 @@ readme:
 	$(GO) run github.com/hymkor/example-into-readme@latest
 	$(GO) run github.com/hymkor/example-into-readme@latest -target README_ja.md
 
+test:
+	$(GO) test -v
+
 clean:
 	-$(UNREADONLY) *.tmp-*
 	-$(DEL) *.tmp-*
