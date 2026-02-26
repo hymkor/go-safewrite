@@ -204,6 +204,19 @@ func (w *writer) Close() error {
 	return nil
 }
 
+// RestorePerm restores the file permissions of a file that was replaced
+// by safewrite.Open and finalized by Close.
+//
+// This function is intended to be called explicitly *after* Close,
+// using the value returned from Open as its argument.
+//
+// safewrite does not automatically restore permissions during Close,
+// because changing permissions immediately may cause subsequent overwrite
+// operations within the same process to fail (for example, when a file
+// becomes read-only after the first save).
+//
+// By requiring an explicit call, applications can control when and whether
+// the original permissions should be restored, such as once at process exit.
 func RestorePerm(wc io.WriteCloser) error {
 	if w, ok := wc.(*writer); ok {
 		return os.Chmod(w.target, w.perm)
