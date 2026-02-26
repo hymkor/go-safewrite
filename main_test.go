@@ -15,10 +15,14 @@ func TestDevNull(t *testing.T) {
 		t.Fatal("confirmOverwrite should not be called for device")
 		return false
 	})
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
+	if _, ok := w.(*os.File); !ok {
+		t.Fatalf("not *os.File for %v", os.DevNull)
+	}
 	if _, err := w.Write([]byte("test")); err != nil {
 		t.Fatalf("write failed: %v", err)
 	}
@@ -48,6 +52,9 @@ func TestCreateNewFile(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("openWrite failed: %v", err)
+	}
+	if _, ok := w.(*os.File); !ok {
+		t.Fatalf("not *os.File for new file")
 	}
 
 	data := []byte("hello")
@@ -83,7 +90,9 @@ func TestOverwriteWithBackup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("openWrite failed: %v", err)
 	}
-
+	if _, ok := w.(*os.File); ok {
+		t.Fatalf("*os.File for not new file")
+	}
 	if _, err := w.Write([]byte("new")); err != nil {
 		t.Fatalf("write failed: %v", err)
 	}
