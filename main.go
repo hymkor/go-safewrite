@@ -9,11 +9,38 @@ import (
 	"path/filepath"
 )
 
+// Status represents how a target file has been handled by safewrite
+// within the current process.
+//
+// It does NOT describe the state of the file on disk.
+// Instead, it records the history of how the file was opened or replaced
+// by safewrite during the lifetime of this process.
+//
+// This information is primarily intended to help applications decide
+// whether to prompt the user again for overwrite confirmation.
 type Status int
 
 const (
+	// NONE indicates that, within the current process, safewrite has not yet
+	// written to this file.
+	//
+	// This means there is no prior record of the file being created or
+	// overwritten by safewrite in this process.
 	NONE Status = iota
+
+	// CREATE indicates that, within the current process, the file was previously
+	// created using os.Create via safewrite.Open.
+	//
+	// In other words, the file did not exist at the time of the first write
+	// performed by this process.
 	CREATE
+
+	// OVERWRITE indicates that, within the current process, an existing regular
+	// file was previously replaced using a temporary file created by
+	// os.CreateTemp and then renamed into place.
+	//
+	// This means safewrite has already performed a safe overwrite operation
+	// for this file in this process.
 	OVERWRITE
 )
 
@@ -177,6 +204,19 @@ func (w *writer) Close() error {
 	return nil
 }
 
+// RestorePerm restores the file permissions of a file that was replaced
+// by safewrite.Open and finalized by Close.
+//
+// This function is intended to be called explicitly *after* Close,
+// using the value returned from Open as its argument.
+//
+// safewrite does not automatically restore permissions during Close,
+// because changing permissions immediately may cause subsequent overwrite
+// operations within the same process to fail (for example, when a file
+// becomes read-only after the first save).
+//
+// By requiring an explicit call, applications can control when and whether
+// the original permissions should be restored, such as once at process exit.
 func RestorePerm(wc io.WriteCloser) error {
 	if w, ok := wc.(*writer); ok {
 		return os.Chmod(w.target, w.perm)
