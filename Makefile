@@ -4,11 +4,13 @@ ifeq ($(OS),Windows_NT)
     WHICH=where.exe
     DEL=del
     NUL=nul
+    UNREADONLY=attrib -r
 else
     SET=export
     WHICH=which
     DEL=rm
     NUL=/dev/null
+    UNREADONLY=chmod u+w
 endif
 
 ifndef GO
@@ -31,6 +33,14 @@ release:
 readme:
 	$(GO) run github.com/hymkor/example-into-readme@latest
 	$(GO) run github.com/hymkor/example-into-readme@latest -target README_ja.md
+
+clean:
+	-$(UNREADONLY) *.tmp-*
+	-$(DEL) *.tmp-*
+	-$(UNREADONLY) *~
+	-$(DEL) *~
+	-$(UNREADONLY) sample.out
+	-$(DEL) sample.out
 
 demo:
 	$(GO) run example.go
