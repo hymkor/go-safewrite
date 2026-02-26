@@ -10,7 +10,7 @@ var _ WorkingFileError = &BackupError{}
 
 var _ WorkingFileError = &ReplaceError{}
 
-func TestOpenWrite_DevNull(t *testing.T) {
+func TestDevNull(t *testing.T) {
 	w, err := Open(os.DevNull, func(*Info) bool {
 		t.Fatal("confirmOverwrite should not be called for device")
 		return false
@@ -28,7 +28,7 @@ func TestOpenWrite_DevNull(t *testing.T) {
 	}
 }
 
-func TestOpenWrite_InvalidPath(t *testing.T) {
+func TestInvalidPath(t *testing.T) {
 	dir := t.TempDir()
 	badPath := filepath.Join(dir, "no-such-dir", "file.bin")
 
@@ -38,7 +38,7 @@ func TestOpenWrite_InvalidPath(t *testing.T) {
 	}
 }
 
-func TestOpenWrite_CreateNewFile(t *testing.T) {
+func TestCreateNewFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "new.bin")
 
@@ -71,7 +71,7 @@ func TestOpenWrite_CreateNewFile(t *testing.T) {
 	}
 }
 
-func TestOpenWrite_OverwriteWithBackup(t *testing.T) {
+func TestOverwriteWithBackup(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "file.bin")
 
