@@ -51,6 +51,13 @@ type writer struct {
 	perm   fs.FileMode
 }
 
+type File interface {
+	io.Writer
+	io.Closer
+	io.Seeker
+	Name() string
+}
+
 type Info struct {
 	Name   string
 	Mode   fs.FileMode
@@ -131,7 +138,7 @@ type WorkingFileError interface {
 func Open(
 	name string,
 	confirmOverwrite func(*Info) bool,
-) (io.WriteCloser, error) {
+) (File, error) {
 
 	info, err := os.Stat(name)
 	if err != nil {
@@ -178,6 +185,10 @@ func Open(
 	}, nil
 }
 
+func (w *writer) Name() string {
+	return w.target
+}
+
 func (w *writer) Close() error {
 	if err := w.File.Close(); err != nil {
 		return err
@@ -217,7 +228,7 @@ func (w *writer) Close() error {
 //
 // By requiring an explicit call, applications can control when and whether
 // the original permissions should be restored, such as once at process exit.
-func RestorePerm(wc io.WriteCloser) error {
+func RestorePerm(wc File) error {
 	if w, ok := wc.(*writer); ok {
 		return os.Chmod(w.target, w.perm)
 	}
