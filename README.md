@@ -1,8 +1,9 @@
 go-safewrite
-=============
-( English / [Japanese](./README_ja.md) )
+============
+( English / [Japanese](README_ja.md) )
 
-go-safewrite provides a write-oriented file open function that allows safe replacement and updating of files.
+go-safewrite is a wrapper around `*os.File` for safely updating and replacing
+files, mainly intended for editors and similar applications.
 
 ```go
 package safewrite // import "github.com/hymkor/go-safewrite"
@@ -13,50 +14,23 @@ var (
 
 func Open(
     name string,
-    confirmOverwrite func(*Info) bool,
+    confirm func(*Info) bool,
 ) (io.WriteCloser, error)
 ```
 
-`Open` returns an `io.WriteCloser`.
-Depending on the situation, the concrete return value may be either `*os.File`
-or an internal implementation type.
-Callers are expected to treat the returned value strictly as an
-`io.WriteCloser`.
-
-## Behavior
-
-- `name` specifies the target file to be updated.
-- `confirmOverwrite` is a callback invoked when the target file already exists.
-  - Returning `true` continues the operation.
-  - Returning `false` causes `Open` to return `ErrOverWriteRejected` and abort.
-
-The behavior of `Open` depends on the state of the target file:
-
-- **File does not exist**
-  - Behaves exactly like `os.Create`.
-  - Returns a `*os.File`.
-- **A device file exists**
-  - The file is opened normally for overwrite.
-  - Returns a `*os.File`.
-- **A regular file exists**
-  - A temporary file is created under a different name.
-  - On `Close`, the original file is replaced by the temporary file.
-    - The original file is renamed with a `~` suffix as a backup.
-    - An existing backup file may be overwritten.
-    - If `Open` is called multiple times for the same file within the same process,
-      the initial backup is preserved and not updated on subsequent saves.
-      This prevents frequent save operations from making the backup meaningless.
-
-If an error occurs during backup or replacement on `Close`:
-
-- The temporary file is left on disk.
-- An error is returned to the caller.
-
-Permission handling:
-
-- `Open` / `Close` do not automatically restore file permissions of the replaced file,
-  in order to keep overwrite behavior simple when the same file is overwritten multiple times.
-- If needed, explicitly call `safewrite.RestorePerm` to copy the original permissions.
+- When opening a file such as `foo`, a temporary file like `foo.tmp-*` is created,
+  and the original file is replaced on `Close`.
+- If a file with the same name already exists, a callback function is invoked to
+  decide whether to overwrite or cancel.
+- The original file is backed up using the name `foo~`.
+- To avoid making backups meaningless due to frequent saves, only the oldest
+  backup is kept within the same process.
+- Read-only files can also be replaced, depending on the decision made by the
+  callback function.
+  - File permissions are cleared on `Close`, but can be restored later using
+    `RestorePerm`.
+- `Open` behaves the same as `os.Create` when the target file does not exist or
+  when the target is a device file.
 
 Example
 -------
