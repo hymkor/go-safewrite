@@ -2,6 +2,8 @@ CHANGELOG
 =========
 ( [English](./CHANGELOG.md) / Japanese )
 
+- アプリケーション終了時にまとめてパーミッション復元処理を行うサブパッケージ `perm` を追加
+
 v0.3.0
 -------
 Feb 25, 2026
