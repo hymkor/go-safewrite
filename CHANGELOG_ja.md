@@ -2,7 +2,12 @@ CHANGELOG
 =========
 ( [English](./CHANGELOG.md) / Japanese )
 
+v0.4.0
+------
+Feb 28, 2026
+
 - アプリケーション終了時にまとめてパーミッション復元処理を行うサブパッケージ `perm` を追加
+- `io.WriteCloser` のかわりに `File` を定義
 
 v0.3.0
 -------
