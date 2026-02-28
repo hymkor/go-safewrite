@@ -2,7 +2,12 @@ CHANGELOG
 =========
 ( English / [Japanese](./CHANGELOG_ja.md) )
 
+v0.4.0
+------
+Feb 28, 2026
+
 - Add `perm` subpackage to restore original file permissions at application shutdown
+- Define `File` instead of `io.WriteCloser`
 
 v0.3.0
 -------
