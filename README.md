@@ -5,17 +5,13 @@ go-safewrite
 go-safewrite is a wrapper around `*os.File` for safely updating and replacing
 files, mainly intended for editors and similar applications.
 
-```go
+```stdout: go1.20.14 doc go-safewrite Open
 package safewrite // import "github.com/hymkor/go-safewrite"
-
-var (
-    ErrOverWriteRejected = errors.New("overwrite rejected")
-)
 
 func Open(
     name string,
-    confirm func(*Info) bool,
-) (io.WriteCloser, error)
+    confirmOverwrite func(*Info) bool,
+) (File, error)
 ```
 
 - When opening a file such as `foo`, a temporary file like `foo.tmp-*` is created,

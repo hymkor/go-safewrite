@@ -2,6 +2,8 @@ CHANGELOG
 =========
 ( English / [Japanese](./CHANGELOG_ja.md) )
 
+- Add `perm` subpackage to restore original file permissions at application shutdown
+
 v0.3.0
 -------
 Feb 25, 2026
